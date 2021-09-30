@@ -92,20 +92,46 @@ class Company{
 
         }
 
+        void set_truck(int trip_id, unordered_map<string,int>& items, bool t){
+            //true = scarico
+            if(t){
+                if(this->trucks[trip_id]->items.size() == 0){
+                    throw std::invalid_argument(string("The truck is empty!"));
+                    //Lancia eccezione, specifica anche se va in negativo!
+                }else{
+                    if(this->trucks[trip_id]->items["mele"] < items["mele"]){
+                        throw std::invalid_argument(string("There are not enough apples!"));
+                    }
+                    if(this->trucks[trip_id]->items["fragole"] < items["fragole"]){
+                        throw std::invalid_argument(string("There are not enough strawberries!"));
+                    }
+                    if(this->trucks[trip_id]->items["arance"] < items["arance"]){
+                        throw std::invalid_argument(string("There are not enough oranges!"));
+                    }
+                    this->trucks[trip_id]->items["mele"] -= items["mele"];
+                    this->trucks[trip_id]->items["fragole"] -= items["fragole"];
+                    this->trucks[trip_id]->items["arance"] -= items["arance"];
+                }
+            }else{ //carico
+                if(this->trucks[trip_id]->items.size() == 0){
+                    this->trucks[trip_id]->items = items;
+                }else{
+                    this->trucks[trip_id]->items["mele"] += items["mele"];
+                    this->trucks[trip_id]->items["fragole"] += items["fragole"];
+                    this->trucks[trip_id]->items["arance"] += items["arance"];
+                }
+            }
+
+        }
+
         void add_travel(int trip_id ,string place, int time){
             this->trucks[trip_id]->travel.push_back({place, time});
         }
 
         void load(int trip_id, string place, unordered_map<string,int> items){
             cout << "DEBUG: plan load for trip " << std::to_string(trip_id) << " at location " << place << endl;
-            //setting content truck 
-            if(this->trucks[trip_id]->items.size() == 0){
-                this->trucks[trip_id]->items = items;
-            }else{
-                this->trucks[trip_id]->items["mele"] += items["mele"];
-                this->trucks[trip_id]->items["fragole"] += items["fragole"];
-                this->trucks[trip_id]->items["arance"] += items["arance"];
-            }
+            //setting content truck (false = scarico)
+            set_truck(trip_id, items, false);
             //setting time of truck's travel
             int time = (items["mele"] + items["arance"] + items["fragole"])*MIN_DELAY;
             this->trucks[trip_id]->time += time;
@@ -134,17 +160,13 @@ class Company{
 
         void ship(int trip_id, string place, unordered_map<string,int> items){
             cout << "DEBUG: plan ship for trip " << std::to_string(trip_id) << " at location " << place << endl;
-            //setting content truck 
-            if(this->trucks[trip_id]->items.size() == 0){
-                //Lancia eccezione, specifica anche se va in negativo!
-            }else{
-                this->trucks[trip_id]->items["mele"] -= items["mele"];
-                this->trucks[trip_id]->items["fragole"] -= items["fragole"];
-                this->trucks[trip_id]->items["arance"] -= items["arance"];
-            }
+            //setting content truck (true = carico)
+            set_truck(trip_id, items, true);
+
             //setting time of truck's travel
             int time = (items["mele"] + items["arance"] + items["fragole"])*MIN_DELAY;
             this->trucks[trip_id]->time += time;
+            
             //setting content warehouse
             set_warehouse(place, items, false);
             add_travel(trip_id, place, time);
@@ -169,11 +191,6 @@ class Company{
             return s;
 
         }
-
-
-
-
-
 
 };
 
