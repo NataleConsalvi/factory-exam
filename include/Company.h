@@ -11,6 +11,7 @@ struct Item{
 struct Camion{
     int time;
     unordered_map<string, int> items;
+    vector<Item> travel;
 };
 
 class Company{
@@ -91,6 +92,10 @@ class Company{
 
         }
 
+        void add_travel(int trip_id ,string place, int time){
+            this->trucks[trip_id]->travel.push_back({place, time});
+        }
+
         void load(int trip_id, string place, unordered_map<string,int> items){
             cout << "DEBUG: plan load for trip " << std::to_string(trip_id) << " at location " << place << endl;
             //setting content truck 
@@ -102,9 +107,11 @@ class Company{
                 this->trucks[trip_id]->items["arance"] += items["arance"];
             }
             //setting time of truck's travel
-            this->trucks[trip_id]->time += (items["mele"] + items["arance"] + items["fragole"])*MIN_DELAY;
+            int time = (items["mele"] + items["arance"] + items["fragole"])*MIN_DELAY;
+            this->trucks[trip_id]->time += time;
             //setting content warehouse (true per rimuovere da magazzino)
             set_warehouse(place, items, true);
+            add_travel(trip_id, place, time);
 
             cout << "DEBUG: goods on truck are now:" << map2str(this->trucks[trip_id]->items) << endl;
         }
@@ -114,12 +121,15 @@ class Company{
             this->trucks[trip_id]->time += this->trucks[trip_id]->items["mele"]*this->customs[place]["mele"];
             this->trucks[trip_id]->time += this->trucks[trip_id]->items["fragole"]*this->customs[place]["fragole"];
             this->trucks[trip_id]->time += this->trucks[trip_id]->items["arance"]*this->customs[place]["arance"];
+            int time =  this->trucks[trip_id]->items["mele"]*this->customs[place]["mele"] + this->trucks[trip_id]->items["fragole"]*this->customs[place]["fragole"] + this->trucks[trip_id]->items["arance"]*this->customs[place]["arance"]; 
+            add_travel(trip_id, place, time);
             
         }
 
         void rest(int trip_id, const string place){
             cout << "DEBUG: plan rest for trip " << std::to_string(trip_id) << " at location " << place << endl;
             this->trucks[trip_id]->time += 8*60;
+            add_travel(trip_id, place, 8*60);
         }
 
         void ship(int trip_id, string place, unordered_map<string,int> items){
@@ -133,11 +143,31 @@ class Company{
                 this->trucks[trip_id]->items["arance"] -= items["arance"];
             }
             //setting time of truck's travel
-            this->trucks[trip_id]->time += (items["mele"] + items["arance"] + items["fragole"])*MIN_DELAY;
+            int time = (items["mele"] + items["arance"] + items["fragole"])*MIN_DELAY;
+            this->trucks[trip_id]->time += time;
             //setting content warehouse
             set_warehouse(place, items, false);
-
+            add_travel(trip_id, place, time);
             cout << "DEBUG: goods on truck are now:" << map2str(this->trucks[trip_id]->items) << endl;
+        }
+
+        string trip_to_string(int trip_id){
+            string s;
+            s += "\nTRIP " + std::to_string(trip_id) + "\n";
+            s += "      Stop:";
+            for(Item place : this->trucks[trip_id]->travel){
+                s += "\t\t" + place.name;
+            }
+            s += "\nmin attesa:";
+            for(Item place : this->trucks[trip_id]->travel){
+                s += "\t\t";
+                for(int i = 0; i < place.name.size() - 3; i++){
+                    s += " ";
+                }
+                s += std::to_string(place.size);
+            }
+            return s;
+
         }
 
 

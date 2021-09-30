@@ -37,9 +37,9 @@ int main() {
     company.check_in(trip_id, "Oslo");  // ferma alla dogana    
     company.ship(trip_id, "Dusseldorf", {{"mele", 6}, {"fragole", 2}});     // consegna  al magazzino        
     company.rest(trip_id, "Trento"); 
-    /*
+    
     cout << company.trip_to_string(trip_id) << endl;
-        
+    /* 
     cout << "ACTUAL:" << endl;
     company.load(trip_id, "Trento", {{"mele",9}, {"fragole",8}}, 200);  // NOTA: qua specifichiamo anche il tempo (minuti)    
     company.check_in(trip_id, "Milano", 130);      // ferma alla dogana
